@@ -2,7 +2,7 @@
 
 vector<string>command;
 long int chunk_size=524288;
-string client_ip,client_port,tracker1_ip,tracker1_port,tracker2_ip,tracker2_port,log_file;
+string client_ip,log_file;
 
 
 void createPeerClient(string seederport,string fname,string file_needed)
@@ -119,11 +119,11 @@ void *makeMyServer(void *clientIP){
     
       
     
-    	//cout<<"waiting"<<endl;
+    	while(1)
+    	{ 
         if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
         {
-            perror("accept");
-            
+                       
             exit(EXIT_FAILURE);
         }
         int client_port_num=ntohs(address.sin_port);
@@ -164,7 +164,7 @@ void *makeMyServer(void *clientIP){
 
 
 	close(conn_sock);      
-    pthread_exit(0);
+   }
     
     
 }
