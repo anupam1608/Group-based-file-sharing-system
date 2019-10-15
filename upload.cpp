@@ -16,13 +16,11 @@ string upload(string filename)
 	if(upfile_size==-1)
 	{
 		cout<<"file doesnot exist"<<endl;
-		write_in_log("file to be uploaded does not exist");
 		return "$";
 	}
 	
 	if(upfile_size==0)
 	{
-		write_in_log(filename +" is empty ");
 		cout<<"no content in file to be uploaded "<<endl;
 		return "$";
 	}
@@ -48,7 +46,7 @@ string upload(string filename)
 		if(upfile_size<cs)
 			cs=upfile_size;
 	}
-	write_in_log("file with name "+ filename +" has hash :"+filehash);
+	
 	string final_hash=hashofhash(filehash);
 	return final_hash;
 
@@ -87,6 +85,7 @@ string hashofhash(string filehash) // stackoverflow
 	for (i = 0; i < SHA_DIGEST_LENGTH * 2; i++)
 		str_hash += fHashString[i];
 
-	write_in_log(str_hash);
+	
 	return str_hash;
 }
+

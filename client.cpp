@@ -131,7 +131,7 @@ void *makeMyServer(void *clientIP){
 		int* argument=(int *)malloc(sizeof(*argument));
 		*argument=new_socket;
 
-		write_in_log("connection established with "+client_port_str);
+		
 	int conn_sock=new_socket;
 	char buffer[512]={0};
 	int status=read(conn_sock,buffer,1024);
@@ -185,7 +185,6 @@ int main(int argc, char* argv[])
 	string t1_ip,t1_port;
 	string t2_ip,t2_port;
 
-	write_in_log("in_main(client)");
 	client_ip=string(argv[1]);
 	
 	command=splitstring(client_ip,':');
@@ -214,7 +213,6 @@ int main(int argc, char* argv[])
 	if(sock_fd<0)
 	{
 		cout<<"error in connection from client";
-		write_in_log("error in connection from client");
 		exit(1);
 	}
 	struct sockaddr_in serv_addr;
@@ -235,11 +233,10 @@ int main(int argc, char* argv[])
 	if(ret<0)
 	{
 		cout<<"connection failed"<<endl;
-		write_in_log("connection failed");
 		exit(1);
 	}
 
-	write_in_log("connection established ");
+	
 	int flag=0;
 	string operation,username,passwd,upfile_name;
 	while(1)
@@ -253,7 +250,7 @@ int main(int argc, char* argv[])
 			cin>>username>>passwd;
 			string del=":";
 			string data=operation+del+username+del+passwd;
-			write_in_log(data);
+			
 			char* data_char=new char[data.length()+1];
 			strcpy(data_char,data.c_str());
 			send(sock_fd,data_char,strlen(data_char),0);
@@ -262,12 +259,10 @@ int main(int argc, char* argv[])
 			{
 				flag=1;
 				cout<<"You are now logged in"<<endl;
-				write_in_log("login successful");
 			}	
 			else
 			{
 				cout<<"wrong username or password"<<endl;
-				write_in_log("login unsuccessful");
 			}
 
 
@@ -279,8 +274,8 @@ int main(int argc, char* argv[])
 			cin>>username>>passwd;
 			string del=":";
 			string data=operation+del+username+del+passwd;
-			write_in_log(data);
-			if(flag==0){
+			if(flag==0)
+			{
 				char* data_char=new char[data.length()+1];
 				strcpy(data_char,data.c_str());
 				send(sock_fd,data_char,strlen(data_char),0);
@@ -289,19 +284,19 @@ int main(int argc, char* argv[])
 				{
 				
 					cout<<"user created successfully "<<endl;
-					write_in_log("user created successfully");
+					
 				}
 				else
 				{
 					cout<<"unsuccessful creation : You are already logged in"<<endl;
-					write_in_log("unsuccessful creation");
+					
 				}	
 			}
 			
 			else
 			{
 				cout<<"unsuccessful creation"<<endl;
-				write_in_log("unsuccessful creation");
+				
 			}
 
 		}
@@ -316,7 +311,7 @@ int main(int argc, char* argv[])
 				char buffer[1024]={0};
 				string del=":";
 				string data=operation+del+upfile_name;
-				write_in_log(data);
+				
 				string upfile_hash=upload(upfile_name);
 				if(upfile_hash=="$")
 					continue;
@@ -328,14 +323,12 @@ int main(int argc, char* argv[])
 				strcpy(upfile_hash_char,request.c_str());
 				send(sock_fd,upfile_hash_char,strlen(upfile_hash_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				cout<<string(buffer)<<endl;
 
 			}
 			else
 			{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
 			}
 		}
 		else if(operation=="download_file")
@@ -394,8 +387,7 @@ int main(int argc, char* argv[])
 			else
 			{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
-
+				
 			}
 		}
 		else if(operation=="create_group")
@@ -411,13 +403,11 @@ int main(int argc, char* argv[])
 			strcpy(request_char,request.c_str());
 			send(sock_fd,request_char,strlen(request_char),0);
 			read(sock_fd,buffer,1024);
-			write_in_log(string(buffer));
 			cout<<string(buffer)<<endl;
 		}
 		else
 		{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
 		}
 
 		}
@@ -432,7 +422,7 @@ int main(int argc, char* argv[])
 			strcpy(request_char,request.c_str());
 			send(sock_fd,request_char,strlen(request_char),0);
 			read(sock_fd,buffer,1024);
-			write_in_log(string(buffer));
+			
 			string grps=string(buffer);
 			std::vector<string> grpnames;
 			grpnames=splitstring(grps,':');
@@ -442,7 +432,6 @@ int main(int argc, char* argv[])
 		else
 		{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
 		}
 
 
@@ -460,15 +449,13 @@ int main(int argc, char* argv[])
 				strcpy(request_char,request.c_str());
 				send(sock_fd,request_char,strlen(request_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				cout<<string(buffer)<<endl;
 
 			}
 			else
 			{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
-
+				
 			}
 			
 
@@ -486,15 +473,13 @@ int main(int argc, char* argv[])
 				strcpy(request_char,request.c_str());
 				send(sock_fd,request_char,strlen(request_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				cout<<string(buffer)<<endl;
 
 			}
 			else
 			{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
-
+				
 			}
 
 		}
@@ -511,7 +496,6 @@ int main(int argc, char* argv[])
 				strcpy(request_char,request.c_str());
 				send(sock_fd,request_char,strlen(request_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				request=string(buffer);
 				std::vector<string> join_req;
 				join_req=splitstring(request,':');
@@ -522,8 +506,7 @@ int main(int argc, char* argv[])
 			else
 			{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
-
+				
 			}
 
 		}
@@ -540,14 +523,12 @@ int main(int argc, char* argv[])
 				strcpy(request_char,request.c_str());
 				send(sock_fd,request_char,strlen(request_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				cout<<string(buffer)<<endl;
 			}
 			else
 			{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
-
+				
 			}	
 
 		}
@@ -564,7 +545,6 @@ int main(int argc, char* argv[])
 				strcpy(request_char,request.c_str());
 				send(sock_fd,request_char,strlen(request_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				request=string(buffer);
 				std::vector<string> files_list;
 				files_list=splitstring(request,':');
@@ -575,8 +555,7 @@ int main(int argc, char* argv[])
 			else
 			{
 				cout<<"Please login first"<<endl;
-				write_in_log("user not found");
-
+				
 			}
 
 		}
@@ -591,7 +570,6 @@ int main(int argc, char* argv[])
 				strcpy(request_char,request.c_str());
 				send(sock_fd,request_char,strlen(request_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				cout<<string(buffer)<<endl;
 				flag=0;
 
@@ -621,7 +599,6 @@ int main(int argc, char* argv[])
 				strcpy(request_char,request.c_str());
 				send(sock_fd,request_char,strlen(request_char),0);
 				read(sock_fd,buffer,1024);
-				write_in_log(string(buffer));
 				cout<<string(buffer)<<endl;
 
 			}
@@ -679,12 +656,4 @@ std::vector<string> splitstring(string str,char delim)
 	return vec;
 }
 
-void write_in_log(string str)
-{
-	ofstream logger(log_file, std::ios_base::out | std::ios_base::app );
-    time_t now;
-    time(&now);
-    char *date=ctime(&now);
-    date[strlen(date)-1]='\0';
-    logger<<date<<" "<<"CLIENT "<<str<<endl;  
-}
+

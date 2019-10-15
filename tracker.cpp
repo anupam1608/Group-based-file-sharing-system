@@ -64,7 +64,7 @@ int main(int argc,char* argv[])
 	string t1_ip,t1_port;
 	string t2_ip,t2_port;
 
-	write_in_log("in_main(tracker)");
+
 	t1_ip="127.0.0.1",t1_port="5000";
 
 	t2_ip="127.0.0.1",t2_port="6000";
@@ -77,15 +77,13 @@ int main(int argc,char* argv[])
 	if(server_fd==0)
 	{
 		cout<<"error in connection";
-		write_in_log("error in connection");
 		exit(1);
 	}
 
 	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
     {
         cout<<"setsockopt"<<endl;
-        write_in_log("error in setsockopt");
-        exit(1);
+             exit(1);
     }
     int port=stoi(t1_port);
     struct sockaddr_in addr;
@@ -105,19 +103,18 @@ int main(int argc,char* argv[])
 	if(bind (server_fd  , (struct sockaddr *)&addr , sizeof ( addr ) )<0)
 	{
 		cout<<"error in binding"<<endl;
-		write_in_log("error in binding");
 		exit(1);
 	}	
 
 	if(listen (server_fd, 34)==0)
 	{
 		cout<<"In  Listening state"<<endl;
-		write_in_log("In Listening state");
+		
 	}	
 	else
 	{
 		cout<<"error in Listening"<<endl;
-		write_in_log("error in Listening");
+	
 		exit(1);
 	}
 
@@ -128,7 +125,7 @@ int main(int argc,char* argv[])
 		if((new_sock=accept( server_fd , (struct sockaddr *)&addr , (socklen_t*)&addrlen))<0)
 		{
 			cout<<"error in connection establishment"<<endl;
-			write_in_log("error in connection establishment");
+			
 			exit(1);
 		}
 		int client_port_num=ntohs(addr.sin_port);
@@ -136,11 +133,10 @@ int main(int argc,char* argv[])
 		int* argument=(int *)malloc(sizeof(*argument));
 		*argument=new_sock;
 
-		write_in_log("connection established with "+client_port_str);
 		if(pthread_create(&client_name,0,serve_client,argument)<0)
 		{
 			cout<<"could not create thread"<<endl;
-			write_in_log("could not create thread ");
+	
 			return 1;
 		}
 
@@ -171,15 +167,7 @@ std::vector<string> splitstring(string str,char c)
 	v.push_back(first),v.push_back(second);
 	return v;
 }
-void write_in_log(string str)
-{
-	ofstream logger(log_file, std::ios_base::out | std::ios_base::app );
-    time_t now;
-    time(&now);
-    char *date=ctime(&now);
-    date[strlen(date)-1]='\0';
-    logger<<date<<" "<<"TRACKER "<<str<<endl;  
-}
+
 
 void *serve_client(void* sock_num)
 {
@@ -192,7 +180,7 @@ void *serve_client(void* sock_num)
 			if(status==0)
 				return sock_num;
 
-			write_in_log(string(buffer));
+			
 			string buffer_str=string(buffer);
 			command=splitstring2(buffer_str,':');
 			struct file_data fdata;
@@ -204,7 +192,7 @@ void *serve_client(void* sock_num)
 				
 				if(user_pass[command[1]]==command[2])
 				{
-					write_in_log("valid user " + command[1]);
+					
 					valid=1;
 					
 				}
@@ -264,14 +252,13 @@ void *serve_client(void* sock_num)
 				outf.open("user_pass.txt", ios::app|ios::out);
 				outf<<command[1]<<":"<<command[2]<<endl;
 				outf.close();
-				write_in_log("user added");
 				valid=1;
 				send(conn_sock,&valid,sizeof(valid),0);
 			}
 			else if(command[0]=="upload_file")
 			{
 				string reply;
-				write_in_log("in upload_file");
+				
 				int flag=0;
 				if(grp_map.find(command[5])==grp_map.end())
 				{
@@ -329,7 +316,6 @@ void *serve_client(void* sock_num)
 					file_map[fname].push_back(fdata);
 					grp_file_map[command[5]].push_back(gdata);
 					user_files[command[7]].push_back(p);
-					write_in_log("successfully shared");
 					reply="successfully shared";
 
 				}
@@ -347,7 +333,7 @@ void *serve_client(void* sock_num)
 				if(flag)
 				{
 					reply="already shared file";
-					write_in_log("already shared");
+					
 				}
 				else
 				{
@@ -355,7 +341,6 @@ void *serve_client(void* sock_num)
 					file_map[fname].push_back(fdata);
 					grp_file_map[command[5]].push_back(gdata);
 					user_files[command[7]].push_back(p);
-					write_in_log("successfully shared");
 					reply="successfully shared";
 
 				}

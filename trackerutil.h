@@ -12,9 +12,6 @@
 #include <fstream>
 
 using namespace std;
-
-// to print log in file
-void write_in_log(string str);
 vector<string>splitstring(string,char);
 vector<string>splitstring2(string str,char delim)
 {

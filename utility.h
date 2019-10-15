@@ -15,10 +15,6 @@ using namespace std;
 
 extern long int chunk_size;
 
-// to print log in file
-void write_in_log(string str);
-
-
 vector<string>splitstring(string,char);
 
 
