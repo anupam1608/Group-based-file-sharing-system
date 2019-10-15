@@ -32,6 +32,7 @@ map<string,vector<grp_file_data>>grp_file_map;//group_name map to file data
 map<string,vector<pair<string,string>>>user_files;//map userid to to pair of grpid and filename
 std::map<string, vector<file_data>> file_map;// map filename to filedata
 set<string>file_set;//set contains filenames present in group
+map<string,vector<pair<string,string>>>downloads;
 std::vector<string> command;
 string tracker1_ip,tracker1_port,tracker2_ip,tracker2_port,log_file;
 pthread_t client_name;	
@@ -324,10 +325,7 @@ void *serve_client(void* sock_num)
 				
 				if(v.size()==0)
 				{
-					ofstream outf;
-					outf.open("seederlist.txt", ios::app|ios::out);
-					outf<<fname<<" "<<fdata.grpid<<" "<<fdata.userid<<" "<<fdata.ip<<" "<<fdata.port<<" "<<fdata.file_size<<" "<<fdata.hash<<endl;
-					outf.close();
+					
 					file_map[fname].push_back(fdata);
 					grp_file_map[command[5]].push_back(gdata);
 					user_files[command[7]].push_back(p);
@@ -353,10 +351,7 @@ void *serve_client(void* sock_num)
 				}
 				else
 				{
-					ofstream outf;
-					outf.open("seederlist.txt", ios::app|ios::out);
-					outf<<fname<<" "<<fdata.grpid<<" "<<fdata.userid<<" "<<fdata.ip<<" "<<fdata.port<<" "<<fdata.file_size<<" "<<fdata.hash<<endl;
-					outf.close();
+					
 					file_map[fname].push_back(fdata);
 					grp_file_map[command[5]].push_back(gdata);
 					user_files[command[7]].push_back(p);
@@ -734,6 +729,27 @@ void *serve_client(void* sock_num)
 				send(conn_sock,reply_char_err,strlen(reply_char_err),0);
 
 
+			}
+			else if(command[0]=="show_downloads")
+			{
+				string reply="";
+				std::vector<pair<string,string>> v=downloads[command[1]];
+				for(auto j=v.begin();j!=v.end();j++)
+				{
+					pair<string,string>p=*j;
+					reply=reply+p.first+":"+p.second+"|";
+				}
+				reply.pop_back();
+				char* reply_char_err=new char[reply.length()+1];
+				strcpy(reply_char_err,reply.c_str());
+				send(conn_sock,reply_char_err,strlen(reply_char_err),0);
+			}
+			else if(command[0]=="add_download")
+			{
+				pair<string,string>p;
+				p.first=command[2];
+				p.second=command[3];
+				downloads[command[1]].push_back(p);
 			}
 
 

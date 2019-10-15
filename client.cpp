@@ -385,6 +385,11 @@ int main(int argc, char* argv[])
 				send(sock_fd,upfile_hash_char,strlen(upfile_hash_char),0);
 				read(sock_fd,buffer,1024);
 				cout<<buffer<<endl;
+				request="add_download"+del+username+del+grpid+del+dest;
+				char* request_down=new char[request.length()+1];
+				strcpy(request_down,request.c_str());
+				send(sock_fd,request_down,strlen(request_down),0);
+
 			}
 			else
 			{
@@ -624,6 +629,22 @@ int main(int argc, char* argv[])
 			{
 				cout<<"you are not logged in! first login."<<endl;
 			}
+
+		}
+		else if(operation=="show_downloads")
+		{
+				string del=":";
+				char buffer[4096]={0};
+				string request=operation+del+username;
+				char* request_char=new char[request.length()+1];
+				strcpy(request_char,request.c_str());
+				send(sock_fd,request_char,strlen(request_char),0);
+				read(sock_fd,buffer,4096);
+				request=string(buffer);
+				std::vector<string> down_files;
+				down_files=splitstring(request,'|');
+				for(int itr=0;itr<down_files.size();itr++)
+					cout<<down_files[itr]<<endl;
 
 		}
 		
