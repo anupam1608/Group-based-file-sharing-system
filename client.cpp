@@ -151,7 +151,7 @@ void *makeMyServer(void *clientIP){
     long long n;
     while ( ( n = fread( buffer1 , sizeof(char) , chunk , fp ) ) > 0  && filesize > 0 )
     {
-    	cout<<buffer1<<endl;
+    	
         send (conn_sock,buffer1, n, 0 );
         memset ( buffer1 , '\0', chunk);
         filesize = filesize - n ;
@@ -164,7 +164,7 @@ void *makeMyServer(void *clientIP){
 
 
 	close(conn_sock);      
-    
+    pthread_exit(0);
     
     
 }
@@ -227,7 +227,7 @@ int main(int argc, char* argv[])
 	if (inet_pton(AF_INET, t1_ip_char, &serv_addr.sin_addr) <= 0)
     {
         printf("\nInvalid address/ Address not supported \n");
-        //logprinter("Invalid address/ Address not supported");
+        
         return -1;
     }
 
@@ -371,8 +371,20 @@ int main(int argc, char* argv[])
 					sinfo.numofseeders=seederscount;
 					seederlist[i]=sinfo;
 				}
-				//createallpeerconnections(seederlist,seederscount,file_size);
+				
 				createPeerClient(testport,dest,file_name);
+				string upfile_hash=upload(dest);
+				if(upfile_hash=="$")
+					continue;
+				long long fsize=getfile_size(dest);
+				
+			    request="upload_file"+del+upfile_hash+del+c_ip+del+dest+del+c_port+del+grpid+del+to_string(fsize)+del+username;
+				char *upfile_hash_char;
+				upfile_hash_char=new char[request.length()+1];
+				strcpy(upfile_hash_char,request.c_str());
+				send(sock_fd,upfile_hash_char,strlen(upfile_hash_char),0);
+				read(sock_fd,buffer,1024);
+				cout<<buffer<<endl;
 			}
 			else
 			{
