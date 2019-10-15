@@ -58,27 +58,7 @@ int main(int argc,char* argv[])
 		user_pass[command[0]]=command[1];
 	}
 
-	ifstream seed_file("seederlist.txt");
-	while(getline(seed_file,line))
-	{
-		command=splitstring2(line,' ');
-		std::vector<file_data> temp;
-		string fname=command[0];
-		struct file_data fdata;
-		fdata.ip=command[1];
-		fdata.port=command[2];
-		fdata.hash=command[3];
-		//cout<<fdata.ip<<" "<<fdata.port<<" "<<fdata.hash<<" "<<endl;
-		temp.push_back(fdata);
-		if(file_map.find(fname)==file_map.end())
-			file_map[fname]=temp;
-		else
-		{
-			file_map[fname].push_back(fdata);
-		}
-
-		
-	}
+	
 
 	string t1_ip,t1_port;
 	string t2_ip,t2_port;
@@ -674,6 +654,37 @@ void *serve_client(void* sock_num)
 				send(conn_sock,reply_char_err,strlen(reply_char_err),0);	
 
 			}
+			else if(command[0]=="download_file")
+			{
+				string grp=command[2];
+				string down_file=command[1];
+				string reply="";
+				string del=":";
+				vector<struct file_data> v=file_map[down_file];
+				if(v.size()!=0)
+				{
+					string fsize="";
+					for(auto j=v.begin();j!=v.end();j++)
+					{
+						struct file_data f=*j;
+						fsize=to_string(f.file_size);
+						if(f.grpid==grp && f.isactive==true)
+						{
+							reply=reply+f.ip+del+f.port+"|";
+						}
+					}
+					if(reply.length()>0)
+						reply=reply+fsize;
+				}
+				else
+					reply="file is not there in group";
+
+				char* reply_char_err=new char[reply.length()+1];
+				strcpy(reply_char_err,reply.c_str());
+				send(conn_sock,reply_char_err,strlen(reply_char_err),0);
+
+
+			}
 			else if(command[0]=="logout")
 			{
 				string uid=command[1];
@@ -733,3 +744,4 @@ void *serve_client(void* sock_num)
 	
 	return sock_num;
 }
+

@@ -30,6 +30,19 @@ size_t getfile_size(string);
 
 string hashofhash(string createhash);
 
+struct seederinfo
+{
+	string seeder_ip;
+	string seeder_port;
+	string filepath;
+	string destpath;
+	int numofseeders;
+	long long num_mychunks;
+	long long start;
+	
+};
+
+
 
 
 

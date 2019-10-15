@@ -3,7 +3,172 @@
 vector<string>command;
 long int chunk_size=524288;
 string client_ip,client_port,tracker1_ip,tracker1_port,tracker2_ip,tracker2_port,log_file;
-int main(int argc, char* argv[])// client_ip:client_port tracker1_ip:tracker1_port tracker2_ip:tracker2_port log_file
+
+
+void createPeerClient(string seederport,string fname,string file_needed)
+{	   
+	
+	int sock = 0, valread; 
+    struct sockaddr_in serv_addr; 
+     
+    char buffer[1024] = {0}; 
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) 
+    { 
+        printf("\n Socket creation error \n"); 
+        
+    } 
+   
+    serv_addr.sin_family = AF_INET; 
+    serv_addr.sin_port = htons(stoi(seederport)); 
+       
+    // Convert IPv4 and IPv6 addresses from text to binary form 
+    if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0)  
+    { 
+        printf("\nInvalid address/ Address not supported \n"); 
+        //return -1; 
+    } 
+   
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0) 
+    { 
+        printf("\nConnection Failed \n"); 
+        //return -1; 
+    } 
+	
+    char* reply_char_err=new char[file_needed.length()+1];
+	strcpy(reply_char_err,file_needed.c_str());
+	send(sock ,reply_char_err,strlen(reply_char_err),0);
+	FILE *fp = fopen ( fname.c_str() , "wb" );
+	size_t chunk=512;
+	char Buffer [chunk] ; 
+	long long file_size;
+
+	long long n;
+	if(recv(sock, &file_size, sizeof(file_size), 0)<0)
+		perror("error\n");
+	else
+	cout<<file_size<<"filesize :client"<<endl;
+	memset(Buffer , '\0', chunk);
+	while ( ( n = recv( sock , Buffer ,   chunk, 0) ) > 0  &&  file_size > 0)
+	{
+	    
+		fwrite (Buffer , sizeof (char), n, fp);
+		memset ( Buffer , '\0', chunk);
+		file_size = file_size - n;
+		if(n<=0 || file_size<=0)
+		{
+			break;
+		}
+} 
+	cout<<"Data transfer complete "<<endl;
+	close(sock);
+	fclose (fp); 	
+   
+}
+
+void *makeMyServer(void *clientIP){
+    // cout<<"Created makeMyServer"<<endl;
+    int server_fd;
+    struct sockaddr_in address;
+    int opt = 1, new_socket;
+    int addrlen = sizeof(address);
+    string cip = *(string *)clientIP;
+    string client_ip, SPORT;
+    char *s_ip;
+    vector<string> cmd = splitstring(cip, ':');
+    client_ip = cmd[0];
+    SPORT = cmd[1];
+    s_ip = new char[client_ip.length()];
+    strcpy(s_ip, client_ip.c_str());
+    //  Connection establishment code.
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    {
+        perror("socket failed");
+        //logprinter("socket failed -- server");
+        exit(EXIT_FAILURE);
+    }
+
+    if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt)))
+    {
+        perror("setsockopt");
+        //logprinter("setsocketopt -- server");
+        exit(EXIT_FAILURE);
+    }
+    address.sin_family = AF_INET;
+    //address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(stoi(SPORT));
+
+    if (inet_pton(AF_INET, s_ip, &address.sin_addr) <= 0)
+    {
+        printf("\nInvalid address/ Address not supported \n");
+        //logprinter("Invalid address/ Address not supported -- server");
+        return clientIP;
+    }
+
+    if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) < 0)
+    {
+        perror("bind failed");
+        //logprinter("bind failed -- server");
+        exit(EXIT_FAILURE);
+    }
+    if (listen(server_fd, 10) < 0)
+    {
+        perror("listen");
+        //logprinter("listen error -- server");
+        exit(EXIT_FAILURE);
+    }
+    
+      
+    
+    	//cout<<"waiting"<<endl;
+        if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0)
+        {
+            perror("accept");
+            
+            exit(EXIT_FAILURE);
+        }
+        int client_port_num=ntohs(address.sin_port);
+		string client_port_str=to_string(client_port_num);
+		int* argument=(int *)malloc(sizeof(*argument));
+		*argument=new_socket;
+
+		write_in_log("connection established with "+client_port_str);
+	int conn_sock=new_socket;
+	char buffer[512]={0};
+	int status=read(conn_sock,buffer,1024);
+	if(status==0)
+		return clientIP;
+	string fname=string(buffer);
+	cout<<fname<<endl;
+	
+	size_t chunk=512; 
+
+    long long filesize=getfile_size(fname);
+    cout<<filesize<<endl;
+    
+    send(conn_sock,&filesize,sizeof(filesize),0);
+    FILE *fp= fopen(fname.c_str(),"rb");
+    char buffer1[chunk];
+    long long n;
+    while ( ( n = fread( buffer1 , sizeof(char) , chunk , fp ) ) > 0  && filesize > 0 )
+    {
+    	cout<<buffer1<<endl;
+        send (conn_sock,buffer1, n, 0 );
+        memset ( buffer1 , '\0', chunk);
+        filesize = filesize - n ;
+        if(n<=0 || filesize <=0)
+        {
+            break;
+        }
+    }
+
+
+
+	close(conn_sock);      
+    
+    
+    
+}
+int main(int argc, char* argv[])
 {
 	
 	if(argc!=3)
@@ -29,6 +194,21 @@ int main(int argc, char* argv[])// client_ip:client_port tracker1_ip:tracker1_po
 	t1_ip="127.0.0.1",t1_port="5000";
 
 	t2_ip="127.0.0.1",t2_port="6000";
+
+	
+	pthread_t serverthread;
+	pthread_attr_t thread_attr2;
+    int res2 = pthread_attr_init(&thread_attr2);
+    if (res2 != 0) {
+        perror("Attribute creation failed");
+        exit(EXIT_FAILURE);
+    }
+   
+    if( pthread_create( &serverthread , &thread_attr2 ,  makeMyServer , (void*)&client_ip) < 0)
+    {
+        perror("could not create thread");
+        return 1;
+    }
 
 	int sock_fd=socket(AF_INET,SOCK_STREAM,0);
 	if(sock_fd<0)
@@ -75,7 +255,7 @@ int main(int argc, char* argv[])// client_ip:client_port tracker1_ip:tracker1_po
 			string data=operation+del+username+del+passwd;
 			write_in_log(data);
 			char* data_char=new char[data.length()+1];
-				strcpy(data_char,data.c_str());
+			strcpy(data_char,data.c_str());
 			send(sock_fd,data_char,strlen(data_char),0);
 			recv(sock_fd,&validbit,sizeof(validbit),0);
 			if(validbit==1)
@@ -156,6 +336,49 @@ int main(int argc, char* argv[])// client_ip:client_port tracker1_ip:tracker1_po
 			{
 				cout<<"Please login first"<<endl;
 				write_in_log("user not found");
+			}
+		}
+		else if(operation=="download_file")
+		{
+			string grpid,file_name,dest;
+			cin>>grpid>>file_name>>dest;
+			if(flag)
+			{
+				char buffer[4096]={0};
+				string del=":";
+				string request=operation+del+file_name+del+grpid;
+				char* request_char=new char[request.length()+1];
+				strcpy(request_char,request.c_str());
+				send(sock_fd,request_char,strlen(request_char),0);
+				read(sock_fd,buffer,4096);
+				cout<<string(buffer)<<endl;
+				std::vector<string> seeder_vec=splitstring(string(buffer),'|');
+				long long file_size=stoi(seeder_vec[(seeder_vec.size())-1]);
+				int seederscount=seeder_vec.size()-1;
+				seederinfo seederlist[seederscount];
+				string testip,testport;
+				for(int i=0;i<seeder_vec.size()-1;i++)
+				{
+					string ipandport=seeder_vec[i];
+					std::vector<string> temp=splitstring(ipandport,':');
+					seederinfo sinfo;
+					sinfo.seeder_ip=temp[0];
+					sinfo.seeder_port=temp[1];
+					testip=temp[0];
+					testport=temp[1];
+					sinfo.filepath=file_name;
+					sinfo.destpath=dest;
+					sinfo.numofseeders=seederscount;
+					seederlist[i]=sinfo;
+				}
+				//createallpeerconnections(seederlist,seederscount,file_size);
+				createPeerClient(testport,dest,file_name);
+			}
+			else
+			{
+				cout<<"Please login first"<<endl;
+				write_in_log("user not found");
+
 			}
 		}
 		else if(operation=="create_group")
