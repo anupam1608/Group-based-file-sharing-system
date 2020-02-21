@@ -1,9 +1,11 @@
 # Group-based-file-sharing-system
 
-To compile tracker : g++ -pthread -o tracker tracker.cpp
+## Commands to run the program : 
 
-To compile client  : g++ client.cpp upload.cpp -o client -lssl -lcrypto -pthread
+**To compile tracker** : g++ -pthread -o tracker tracker.cpp
 
-To run tracker : ./tracker trackerinfo.txt 1
+**To compile client**  : g++ client.cpp upload.cpp -o client -lssl -lcrypto -pthread
 
-To run client : ./client 127.0.0.1:8000 trackerinfo.txt
+**To run tracker** : ./tracker trackerinfo.txt 1
+
+**To run client** : ./client 127.0.0.1:8000 trackerinfo.txt
